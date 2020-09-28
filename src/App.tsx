@@ -1,24 +1,48 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
+import React from "react";
+import { Message, Button } from "semantic-ui-react";
+import { useWeb3Context } from "./contexts/Web3";
+import "./App.css";
+import { unlockAccount } from "./api/web3";
+import useAsync from "./components/useAsync";
+// import DepositForm from "./App/DepositForm";
+import MultiSigWallet from "./App/MultiSigWallet";
 function App() {
+  const {
+    state: { account },
+    updateAccount,
+  } = useWeb3Context();
+  const { pending, error, call } = useAsync(unlockAccount);
+
+  async function onClickConnect() {
+    const { error, data } = await call(null);
+    if (error) {
+      console.error(error);
+    }
+    if (data) {
+      //update account
+      updateAccount(data);
+    }
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className='App'>
+      <div className='App-header'>
+        <h1>Delfy Multi-sig Wallet</h1>
+        <div>Account: {account}</div>
+        {/* <div>Contract: {account}</div> */}
+        <Message warning>
+          {!account ? "Metamask is not connected" : "Connected"}
+        </Message>
+        <Button
+          color='green'
+          onClick={() => onClickConnect()}
+          disabled={pending}
+          loading={pending}
         >
-          Learn React
-        </a>
-      </header>
+          Connect to Metamask
+        </Button>
+        <MultiSigWallet />
+      </div>
     </div>
   );
 }
